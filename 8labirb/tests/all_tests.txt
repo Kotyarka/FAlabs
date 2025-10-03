@@ -1,0 +1,72 @@
+# =============================================
+# ВСЕ ТЕСТЫ ДЛЯ ПРОГРАММЫ
+# Формат: команда | ожидаемый_код | ожидаемая_строка_в_выводе
+# "-" означает, что вывод не проверяется
+# =============================================
+
+[Флаг -q: Валидные данные]
+-q 0.0001 1 -3 2 | 0 | two roots
+-q 0.0001 1 2 1 | 0 | one root
+-q 0.0001 1 0 1 | 0 | no real roots
+-q 0.0001 0 2 1 | 0 | not a quadratic equation
+-q 0.001 2.5 -1.5 0.5 | 0 | All permutations
+
+[Флаг -q: Невалидные данные]
+# Неправильное количество аргументов
+-q | 5 | Wrong value of arguments
+-q 0.0001 | 5 | Wrong value of arguments
+-q 0.0001 1 2 | 5 | Wrong value of arguments
+# Невалидный epsilon
+-q abc 1 2 3 | 1 | epsilon must be a valid number
+-q -0.1 1 2 3 | 1 | epsilon must be positive
+# Невалидные коэффициенты
+-q 0.0001 1 abc 3 | 1 | coefficient must be a valid number
+-q 0.0001 nan 2 3 | 1 | coefficient must be a valid number
+-q 0.0001 1 2.3.4 3 | 1 | coefficient must be a valid number
+
+[Флаг -m: Валидные данные]
+-m 10 5 | 0 | is multiple
+-m 15 3 | 0 | is multiple
+-m 10 3 | 0 | is not multiple
+-m -10 5 | 0 | is multiple
+-m 15 -3 | 0 | is multiple
+-m -15 -3 | 0 | is multiple
+
+[Флаг -m: Невалидные данные]
+# Неправильное количество аргументов
+-m | 5 | Wrong value of arguments
+-m 10 | 5 | Wrong value of arguments
+# Невалидные числа
+-m 10.5 5 | 1 | numbers must be valid integers
+-m abc 5 | 1 | numbers must be valid integers
+-m 10 abc | 1 | numbers must be valid integers
+-m 0 5 | 1 | invalid number format
+-m 10 0 | 1 | invalid number format
+-m 0 0 | 1 | invalid number format
+
+[Флаг -t: Валидные данные]
+-t 0.0001 3 4 5 | 0 | can be sides
+-t 0.0001 5 3 4 | 0 | can be sides
+-t 0.0001 2 3 4 | 0 | cannot be sides
+-t 0.0001 1 1 1 | 0 | cannot be sides
+-t 0.001 0.3 0.4 0.5 | 0 | can be sides
+
+[Флаг -t: Невалидные данные]
+# Неправильное количество аргументов
+-t | 5 | Wrong value of arguments
+-t 0.0001 | 5 | Wrong value of arguments
+-t 0.0001 3 4 | 5 | Wrong value of arguments
+# Невалидный epsilon
+-t abc 3 4 5 | 1 | epsilon must be a valid number
+-t -0.1 3 4 5 | 1 | epsilon must be positive
+# Невалидные стороны
+-t 0.0001 abc 4 5 | 1 | side length must be a valid number
+-t 0.0001 -3 4 5 | 1 | all sides must be positive
+-t 0.0001 0 4 5 | 1 | all sides must be positive
+# Не существующий треугольник
+-t 0.0001 1 2 10 | 1 | cannot form any triangle
+
+[Некорректные флаги]
+-x 1 2 3 | 5 | Error occurred
+/z 1 2 3 | 5 | Error occurred
+ | 5 | Wrong value of arguments

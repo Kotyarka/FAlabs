@@ -1,6 +1,6 @@
 #include "flags.h"
 
-int convertStrToNum(const char* str, int* num) {
+errorCodes convertStrToNum(const char* str, int* num) {
     if (str == NULL || num == NULL) {
         return POINTER_ERROR;
     }
@@ -20,7 +20,7 @@ int convertStrToNum(const char* str, int* num) {
     return OK;
 }
 
-int isFlagValid(const char* flag) {
+errorCodes isFlagValid(const char* flag) {
     if (!(flag[0] == '-' || flag[0] == '/') || strlen(flag) != 2) {
         return BAD_INPUT;
     }
@@ -37,7 +37,7 @@ int isFlagValid(const char* flag) {
     }
 }
 
-int h(int num, int* list, int* count) { // натуральные числа в пределах 100 включительно, кратные x
+errorCodes h(int num, int* list, int* count) { // натуральные числа в пределах 100 включительно, кратные x
     if (list == NULL || count == NULL) {
         return POINTER_ERROR;
     }
@@ -56,7 +56,7 @@ int h(int num, int* list, int* count) { // натуральные числа в 
     return OK;
 }
 
-int p(const int x, int* isPrime) { // является ли число x простым; является ли x составным; 
+errorCodes p(const int x, int* isPrime) { // является ли число x простым; является ли x составным; 
     if (isPrime == NULL) {
         return POINTER_ERROR;
     }
@@ -78,7 +78,7 @@ int p(const int x, int* isPrime) { // является ли число x про�
     return OK;
 }
 
-int s(int x, char* hexRepr, int* ind) { // в 16 отдельно разделяя пробелом от старших к младшим в строковом
+errorCodes s(int x, char* hexRepr, int* ind) { // в 16 отдельно разделяя пробелом от старших к младшим в строковом
     if (hexRepr == NULL || ind == NULL) {
         return POINTER_ERROR;
     }
@@ -116,7 +116,7 @@ int s(int x, char* hexRepr, int* ind) { // в 16 отдельно разделя
     return OK;
 }
 
-int e(int x, long*** list) { // таблица степеней до х до 10 основания
+errorCodes e(int x, long*** list) { // таблица степеней до х до 10 основания
     if (x > 10 || x <= 0) {
         return BAD_INPUT;
     }
@@ -146,7 +146,7 @@ int e(int x, long*** list) { // таблица степеней до х до 10 
     return OK;
 }
 
-int f(const int x, long* fact) { // факториал
+errorCodes f(const int x, long* fact) { // факториал
     if (fact == NULL) {
         return POINTER_ERROR;
     }
@@ -166,7 +166,7 @@ int f(const int x, long* fact) { // факториал
     return OK;
 }
 
-int a(const int x, int* result) { //  сумма от 1 до х
+errorCodes a(const int x, int* result) { //  сумма от 1 до х
     if (x <= 0) {
         return BAD_INPUT;
     }

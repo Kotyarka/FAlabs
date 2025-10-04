@@ -15,7 +15,6 @@ errorCodes isValidInteger(const char* str) {
         i++;
     }
     
-    // Проверяем знак
     if (str[i] == '-' || str[i] == '+') {
         i++;
     }

@@ -53,17 +53,15 @@ errorCodes calculateELimit(double eps, double* result) {
     }
     
     double currentE = 1, prevE = 0;
-    int i = 1;
+    long i = 1;
     while (fabs(currentE - prevE) > eps) {
         prevE = currentE;
         currentE = pow(1 + 1.0 / i, i);
-        ++i;
+        i++;
+        if (i > 10000000) break;
     }
 
     *result = currentE;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
@@ -75,20 +73,41 @@ errorCodes calculatePiLimit(double eps, double* result) {
         return BAD_INPUT;
     }
     
-    double current = 4, prev, add = 4;
-    long n = 2;
-    do {
-        prev = current;
-        add *= ((double)n / (2 * n - 1)) * ((double)n / (2 * n - 1)) * ((double)n / (2 * n)) * ((double)n / (2 * n));
-        add *= 16;
-        current = add / n;
-        ++n;
-    } while (fabs(current - prev) > eps);
-
-    *result = current;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
+    double previous = 0;
+    double current = 4.0;
+    long n = 1;
+    
+    while (n == 1 || fabs(current - previous) > eps) {
+        previous = current;
+        n++;
+        
+        double factorial_n = 1.0;
+        for (long i = 1; i <= n; i++) {
+            factorial_n *= i;
+        }
+        
+        double factorial_2n = 1.0;
+        for (long i = 1; i <= 2 * n; i++) {
+            factorial_2n *= i;
+        }
+        
+        double numerator = pow(pow(2, n) * factorial_n, 4);
+        double denominator = n * pow(factorial_2n, 2);
+        
+        current = numerator / denominator;
+        
+        if (isnan(current) || isinf(current)) {
+            *result = previous;
+            return OK;
+        }
+        
+        if (n > 10000) {
+            *result = current;
+            return OK;
+        }
     }
+    
+    *result = current;
     return OK;
 }
 
@@ -105,13 +124,11 @@ errorCodes calculateLnLimit(double eps, double* result) {
     do {
         prev = current;
         current = (pow(2, 1.0 / n) - 1) * n;
-        ++n;
+        n++;
+        if (n > 10000000) break;
     } while (fabs(current - prev) > eps);
     
     *result = current;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
@@ -128,36 +145,58 @@ errorCodes calculateSqrt2Limit(double eps, double* result) {
     do {
         prev = current;
         current = (current - (current * current / 2) + 1);
-        ++n;
+        n++;
+        if (n > 10000000) break;
     } while (fabs(current - prev) > eps);
     
     *result = current;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
 errorCodes calculateGammaLimit(double eps, double* result) {
-    if (result == NULL) {
-        return POINTER_ERROR;
-    }
-    if (eps <= 0) {
-        return BAD_INPUT;
-    }
+    if (result == NULL) return POINTER_ERROR;
+    if (eps <= 0) return BAD_INPUT;
     
-    double previous = 0, current = 1;
-    long n = 1;
-    while (fabs(previous - current) > eps) {
+    double previous = 0, current = 0;
+    long m = 2;
+    int max_iterations = 1000;
+    
+    do {
         previous = current;
-        n *= 2;
-        current = calculateHarmonicNumber(n) - log(n);
-    }
+        current = 0;
+        
+        for (long k = 1; k <= m; k++) {
+
+            double binom = 1.0;
+            for (long i = 1; i <= k; i++) {
+                binom = binom * (m - i + 1) / i;
+            }
+            double ln_factorial = 0.0;
+            for (long i = 1; i <= k; i++) {
+                ln_factorial += log(i);
+            }
+            
+            double sign = (k % 2 == 0) ? 1.0 : -1.0;
+            double term = sign * binom * ln_factorial / k;
+            
+            current += term;
+            
+            if (isnan(current) || isinf(current)) {
+                *result = previous;
+                return OK;
+            }
+        }
+        
+        m++;
+        
+        if (m > max_iterations) {
+            *result = current;
+            return OK;
+        }
+        
+    } while (fabs(current - previous) > eps);
     
     *result = current;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
@@ -170,17 +209,15 @@ errorCodes calculateERow(double eps, double* result) {
     }
     
     double e = 1.0, add = 1;
-    int i = 2;
+    long i = 2;
     while (add > eps) {
         e += add;
         add /= i;
-        ++i;
+        i++;
+        if (i > 10000000) break;
     }
     
     *result = e;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
@@ -193,22 +230,20 @@ errorCodes calculatePiRow(double eps, double* result) {
     }
     
     double pi = 0, add;
-    int i = 1;
+    long i = 1;
     do {
-        add = ((double)1) / (2 * i - 1);
+        add = 1.0 / (2 * i - 1);
 
         if ((i - 1) % 2 == 0) {
             pi += add;
         } else {
             pi -= add;
         }
-        ++i;
-    } while (add > eps);
+        i++;
+        if (i > 10000000) break;
+    } while (fabs(add) > eps);
     
     *result = pi * 4;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
@@ -220,75 +255,79 @@ errorCodes calculateLnRow(double eps, double* result) {
         return BAD_INPUT;
     }
     
-    double ln = 0, add = 100;
-    int i = 1;
-    while (fabs(add) > eps) {
-        add = ((double)1) / i;
+    double ln = 0, add;
+    long i = 1;
+    do {
+        add = 1.0 / i;
 
         if ((i - 1) % 2 == 0) {
             ln += add;
         } else {
             ln -= add;
         }
-        ++i;
-    }
+        i++;
+        if (i > 10000000) break;
+    } while (fabs(add) > eps);
     
     *result = ln;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
 errorCodes calculateSqrt2Row(double eps, double* result) {
-    if (result == NULL) {
-        return POINTER_ERROR;
-    }
-    if (eps <= 0) {
-        return BAD_INPUT;
-    }
+    if (result == NULL) return POINTER_ERROR;
+    if (eps <= 0) return BAD_INPUT;
     
-    double sqrt2 = 1, degree2 = 0.25;
-    while (fabs(degree2) > eps) {
-        sqrt2 *= pow(2, degree2);
-        degree2 *= 0.5;
-    }
+    double product = 1.0;
+    double prev_product;
+    int k = 2;
     
-    *result = sqrt2;
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
+    do {
+        prev_product = product;
+        double exponent = pow(0.5, k);
+        product *= pow(2, exponent);
+        k++;
+        if (k > 1000) break;
+    } while (fabs(product - prev_product) > eps);
+    
+    *result = product;
     return OK;
 }
 
 errorCodes calculateGammaRow(double eps, double* result) {
-    if (result == NULL) {
-        return POINTER_ERROR;
-    }
-    if (eps <= 0) {
-        return BAD_INPUT;
-    }
+    if (result == NULL) return POINTER_ERROR;
+    if (eps <= 0) return BAD_INPUT;
     
-    eps = eps / 100000;
-    double sigma = 0, add;
-    long k = 2, sqrtFloor;
-    do {
-        sqrtFloor = (long)(sqrt(k));
-        if (sqrtFloor * sqrtFloor == k) {
-            ++k;
-            sqrtFloor = (long)sqrt(k);
-        }
-        add = (1.0 / (sqrtFloor * sqrtFloor)) - (1.0 / k);
-        sigma += add;
-        ++k;
-    } while (fabs(add) > eps);
-
     double pi;
-    calculatePiRow(eps, &pi);
-    *result = sigma - (pi * pi / 6);
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
+    errorCodes status = calculatePiRow(eps/10, &pi);
+    if (status != OK) return status;
+    double pi_sq_over_6 = (pi * pi) / 6.0;
+    
+    double sum = 0.0;
+    double compensation = 0.0;
+    double previous_gamma = 0.0;
+    double current_gamma = -pi_sq_over_6; 
+    long k = 2;
+    
+    long min_iterations = 100000;
+    
+    do {
+        previous_gamma = current_gamma;
+        
+        long floor_sqrt_k = (long)sqrt(k);
+        double term = 1.0 / ((double)floor_sqrt_k * floor_sqrt_k) - 1.0 / k;
+        
+        double y = term - compensation;
+        double t = sum + y;
+        compensation = (t - sum) - y;
+        sum = t;
+        
+        current_gamma = -pi_sq_over_6 + sum;
+        
+        k++;
+
+    } while (k < min_iterations || fabs(current_gamma - previous_gamma) > eps);
+    
+    *result = current_gamma;
     return OK;
 }
 
@@ -314,9 +353,6 @@ errorCodes calculateEEquation(double eps, double* result) {
     }
     
     *result = calculateEquationByFunc(1, 3, 1, &log, eps);
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK; 
 }
 
@@ -340,9 +376,6 @@ errorCodes calculatePiEquation(double eps, double* result) {
     }
     
     *result = x;
-    if (isnan(x)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK;
 }
 
@@ -355,9 +388,6 @@ errorCodes calculateLnEquation(double eps, double* result) {
     }
     
     *result = calculateEquationByFunc(0, 1, 2, &exp, eps);
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK; 
 }
 
@@ -374,35 +404,35 @@ errorCodes calculateSqrt2Equation(double eps, double* result) {
     }
     
     *result = calculateEquationByFunc(1, 3, 2, &squareFunction, eps);
-    if (isnan(*result)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
     return OK; 
 }
 
 errorCodes calculateGammaEquation(double eps, double* result) {
-    if (result == NULL) {
-        return POINTER_ERROR;
-    }
-    if (eps <= 0) {
-        return BAD_INPUT;
-    }
+    if (result == NULL) return POINTER_ERROR;
+    if (eps <= 0) return BAD_INPUT;
     
-    int p = 2;
-    double current = log(2) * 0.5, previous = 0, product = 0.5;
+    double product = 1.0;
+    double prev_limit;
+    double current_limit = 0;
+    long t = 2;
+    int prime_count = 0;
+    
+    int min_primes = 1000;
+    
     do {
-        previous = current;
-        do {
-            p++;
-        } while (!isPrime(p));
-        product *= (p - 1.0)/p;
-        current = log(p) * product;
-    } while (fabs(previous - current) >= eps);
+        prev_limit = current_limit;
+        
+        if (isPrime(t)) {
+            product *= (t - 1.0) / t;
+            prime_count++;
+            current_limit = log(t) * product;
+        }
+        
+        t++;
+        
+    } while (prime_count < min_primes || fabs(current_limit - prev_limit) > eps);
     
-    *result = -log(current);
-    if (isnan(current)) {
-        return TOO_SMALL_EPSILON_ERROR;
-    }
+    *result = -log(current_limit);
     return OK;
 }
 

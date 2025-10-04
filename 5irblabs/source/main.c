@@ -2,7 +2,8 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 3 || argc > 4) {
-        printf("Wrong calue of arguments\n");
+        printf("Wrong number of arguments");
+        printf("usage: %s <flag> <input_file> [output_file]\n", argv[0]);
         return WRONG_ARGUMENTS;
     }
 
@@ -11,9 +12,9 @@ int main(int argc, char* argv[]) {
     char* outputName = NULL;
     char outputBuffer[1024];
 
-    if (flag[1] == 'n' && strlen(flag) == 3) {
+    if ((flag[1] == 'n' || (flag[0] == '/' && flag[1] == 'n')) && strlen(flag) == 3) {
         if (argc != 4) {
-            printf("there is no output file name!");
+            printf("Wrong number of arguments\n", flag);
             return WRONG_ARGUMENTS;
         }
         outputName = argv[3];
@@ -22,40 +23,40 @@ int main(int argc, char* argv[]) {
         outputName = outputBuffer;
     }
 
-    
     errorCodes flagCheck = isFlagValid(flag);
     if (flagCheck != OK) {
-        printf("Error occured: %d\n", flagCheck);
+        printf("Invalid flag", flag);
         return flagCheck;
     }
     
     FILE* input = fopen(inputFile, "r");
     if (input == NULL) {
-        printf("Occured error while openning file");
+        printf("Cannot open input file\n", inputFile);
         return OPENING_FILE_ERROR;
     }
 
     FILE* output = fopen(outputName, "w");
     if (output == NULL) {
-        printf("Occured error while openning file");
+        printf("Cannot open output file\n", outputName);
+        fclose(input);
         return OPENING_FILE_ERROR;
     }
 
     char flagChar = flag[strlen(flag)-1];
-    int resultCode = OK;
-
+    errorCodes resultCode = OK;
+    
     switch (flagChar) {
         case 'd':
-            resultCode = d(input,output);
+            resultCode = d(input, output);
             break;
         case 'i':
-            resultCode = i(input,output);
+            resultCode = i(input, output);
             break;
         case 's':
-            resultCode = s(input,output);
+            resultCode = s(input, output);
             break;
         case 'a':
-            resultCode = a(input,output);
+            resultCode = a(input, output);
             break;
         default:
             resultCode = BAD_INPUT;
@@ -64,10 +65,26 @@ int main(int argc, char* argv[]) {
 
     fclose(input);
     fclose(output);
+    
     if (resultCode != OK) {
-        printf("Error occured when do something with files: %d\n", resultCode);
+        printf("Doings failed with code %d\n", resultCode);
+        switch (resultCode) {
+            case BAD_INPUT:
+                printf("Invalid input data\n");
+                break;
+            case OVERFLOW_ERROR:
+                printf("Overflow occurred\n");
+                break;
+            case MALLOC_ERROR:
+                printf("Memory allocation failed!!\n");
+                break;
+            case POINTER_ERROR:
+                printf("NULL pointer encountered\n");
+                break;
+            default:
+                printf("Unknown error occurred\n");
+        }
         return resultCode;
     }
-
     return OK;
 }

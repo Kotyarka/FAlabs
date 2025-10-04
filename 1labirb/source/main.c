@@ -1,29 +1,42 @@
-#include "./flags/flags.h"
+#include "../include/flags.h"
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        printf("Wrong value of arguments\n");
+        printf("Wrong number of arguments.\n");
         return WRONG_ARGUMENTS;
     }
 
     char* flag = argv[1];
     char* numStr = argv[2];
     
-    int flagCheck = isFlagValid(flag);
+    errorCodes flagCheck = isFlagValid(flag);
     if (flagCheck != OK) { 
-        printf("Error occurred: %d\n", flagCheck);
+        printf("Invalid flag");
+
         return flagCheck;
     }
     
     int num;
-    int converResult = convertStrToNum(numStr, &num);
+    errorCodes converResult = convertStrToNum(numStr, &num);
     if (converResult != OK) {
-        printf("Error occurred: %d\n", converResult);
+        switch (converResult) {
+            case POINTER_ERROR:
+                printf("NULL pointer error\n");
+                break;
+            case BAD_INPUT:
+                printf("Invalid number \n");
+                break;
+            case OVERFLOW_ERROR:
+                printf("Overflow error\n");
+                break;
+            default:
+                printf("unknown error\n");
+        }
         return converResult;
     }
     
     char flagChar = flag[1];
-    int resultCode;
+    errorCodes resultCode = OK;
     
     switch (flagChar) {
         case 'h': {
@@ -40,6 +53,10 @@ int main(int argc, char* argv[]) {
                     }
                     printf("\n");
                 }
+            } else {
+                if (resultCode == BAD_INPUT) {
+                    printf("Input number cannot be zero\n");
+                }
             }
             break;
         }
@@ -54,10 +71,15 @@ int main(int argc, char* argv[]) {
                 } else {
                     printf("%d is composite\n", num);
                 }
+            } else {
+                if (resultCode == BAD_INPUT) {
+                    printf("Number must be positive\n");
+                }
             }
             break;
         }
         case 's': {
+            printf("Converting %d to hexadecimal...\n", num);
             char hexRepr[32];
             int length;
             resultCode = s(num, hexRepr, &length);
@@ -74,6 +96,8 @@ int main(int argc, char* argv[]) {
                     }
                     printf("\n");
                 }
+            } else {
+                printf("Failed to convert %d to hexadecimal\n", num);
             }
             break;
         }
@@ -81,16 +105,20 @@ int main(int argc, char* argv[]) {
             long** listOfNums;
             resultCode = e(num, &listOfNums);
             if (resultCode == OK) {
-                printf("Powers 1-%d for numbers 1-10:\n", num);
                 for (int i = 0; i < 10; i++) {
-                    printf("%d: ", i + 1);
                     for (int j = 0; j < num; j++) {
-                        printf("%ld ", listOfNums[i][j]);
+                        printf("%10ld ", listOfNums[i][j]);
                     }
                     printf("\n");
                     free(listOfNums[i]);
                 }
                 free(listOfNums);
+            } else {
+                if (resultCode == BAD_INPUT) {
+                    printf("Exponent must be between 1 and 10\n");
+                } else if (resultCode == MALLOC_ERROR) {
+                    printf("Memory allocation failed\n");
+                }
             }
             break;
         }
@@ -99,6 +127,12 @@ int main(int argc, char* argv[]) {
             resultCode = f(num, &fact);
             if (resultCode == OK) {
                 printf("%d! = %ld\n", num, fact);
+            } else {
+                if (resultCode == BAD_INPUT) {
+                    printf("Factorial is only defined for positive numbers\n");
+                } else if (resultCode == OVERFLOW_ERROR) {
+                    printf("Overflow erorr");
+                }
             }
             break;
         }
@@ -107,15 +141,19 @@ int main(int argc, char* argv[]) {
             resultCode = a(num, &sum);
             if (resultCode == OK) {
                 printf("Sum of numbers from 1 to %d = %d\n", num, sum);
+            } else {
+                if (resultCode == BAD_INPUT) {
+                    printf("Sum is only defined for positive numbers");
+                } else if (resultCode == OVERFLOW_ERROR) {
+                    printf("Oveflow error\n");
+                }
             }
             break;
         }
     }
     
     if (resultCode != OK) {
-        printf("Error occurred: %d\n", resultCode);
         return resultCode;
     }
-    
     return OK;
 }

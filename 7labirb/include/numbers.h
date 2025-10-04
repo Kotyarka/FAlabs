@@ -1,11 +1,11 @@
 #ifndef NUMBERS_H
 #define NUMBERS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <limits.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef enum {
     OK = 0,
@@ -14,17 +14,17 @@ typedef enum {
     MALLOC_ERROR = 3,
     POINTER_ERROR = 4,
     WRONG_ARGUMENTS = 5,
-    OPENING_FILE_ERROR = 6,
-    INVALID_NUMBER_ERROR = 7,
+    INVALID_BASE = 6,
+    EMPTY_INPUT = 7,
+    INVALID_DIGIT = 8,
+    CONVERSION_ERROR = 9,
+    FILE_ERROR = 10,
+    INVALID_NUMBER = 11
 } errorCodes;
 
-// Основная функция обработки чисел
-errorCodes process_numbers(FILE* input, FILE* output);
-
-// Вспомогательные функции
-errorCodes find_min_base(const char* number, int* result_base);
-errorCodes convert_to_decimal(const char* number, int base, long long* result);
-errorCodes remove_leading_zeros(const char* number, char** result);
-errorCodes read_next_token(FILE* file, char** result);
+errorCodes numChecker(char* str, const int* base, int* isMinus);
+errorCodes toDecInt(char* str, const int base, long* num);
+errorCodes removeLeadingZeros(char* str);
+errorCodes findMinBase(char* numberStr, int* minBase);
 
 #endif

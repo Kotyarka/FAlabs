@@ -21,7 +21,6 @@ typedef enum {
 
 errorCodes isFlagValid(const char* flag);
 
-// Основные функции флагов
 errorCodes d(FILE* input, FILE* output);
 errorCodes i(FILE* input, FILE* output);
 errorCodes s(FILE* input, FILE* output);

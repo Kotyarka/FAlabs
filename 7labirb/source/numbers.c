@@ -1,188 +1,258 @@
 #include "../include/numbers.h"
 
-#define MAX_NUMBER_LENGTH 1000
-
-errorCodes process_numbers(FILE* input, FILE* output) {
-    if (input == NULL || output == NULL) {
+errorCodes baseParsing(char* str, int* base) {
+    if (str == NULL || base == NULL) {
         return POINTER_ERROR;
     }
 
-    char* token = NULL;
-    errorCodes result_code = OK;
-    
-    while (result_code == OK && (result_code = read_next_token(input, &token)) == OK && token != NULL) {
-        char* cleaned_number = NULL;
-        errorCodes clean_result = remove_leading_zeros(token, &cleaned_number);
-        
-        if (clean_result != OK) {
-            free(token);
-            return clean_result;
-        }
-        
-        int min_base;
-        errorCodes base_result = find_min_base(cleaned_number, &min_base);
-        
-        if (base_result == OK) {
-            long long decimal_value;
-            errorCodes convert_result = convert_to_decimal(cleaned_number, min_base, &decimal_value);
-            
-            if (convert_result == OK) {
-                fprintf(output, "%s %d %lld\n", cleaned_number, min_base, decimal_value);
-            } else if (convert_result == OVERFLOW_ERROR) {
-                fprintf(output, "%s %d overflow\n", cleaned_number, min_base);
-                result_code = OK; 
-            } else {
-                result_code = convert_result;
-            }
-        } else {
-            fprintf(stderr, "Error: number '%s' cannot be represented in base 2-36\n", cleaned_number);
-            result_code = OK;
-        }
-        
-        free(cleaned_number);
-        free(token);
-        token = NULL;
-    }
-    
-    if (result_code == OK && token == NULL) {
-        return OK;
-    }
-    
-    if (token != NULL) {
-        free(token);
-    }
-    
-    return result_code;
-}
+    char* p;
+    errno = 0;
+    long result = strtol(str, &p, 10);
 
-errorCodes read_next_token(FILE* file, char** result) {
-    if (file == NULL || result == NULL) {
-        return POINTER_ERROR;
+    if (*p != '\0') {
+        return WRONG_ARGUMENTS;
     }
-
-    char* buffer = malloc(MAX_NUMBER_LENGTH);
-    if (buffer == NULL) {
-        return MALLOC_ERROR;
+    if (errno == ERANGE || result == LONG_MAX || result == LONG_MIN) {
+        return OVERFLOW_ERROR;
     }
-    
-    int c;
-    int index = 0;
-    while ((c = fgetc(file)) != EOF && isspace(c));
-    
-    if (c == EOF) {
-        free(buffer);
-        *result = NULL;
-        return OK; 
+    *base = (int)result;
+    if (*base < 2 || *base > 36) {
+        return INVALID_BASE;
     }
-    
-    buffer[index++] = c;
-    while ((c = fgetc(file)) != EOF && !isspace(c) && index < MAX_NUMBER_LENGTH - 1) {
-        buffer[index++] = c;
-    }
-    buffer[index] = '\0';
-    
-    // Если мы прочитали разделитель, возвращаем его в поток
-    if (c != EOF && isspace(c)) {
-        ungetc(c, file);
-    }
-    
-    *result = buffer;
     return OK;
 }
 
-errorCodes find_min_base(const char* number, int* result_base) {
-    if (number == NULL || result_base == NULL) {
+errorCodes numChecker(char* str, const int* base, int* isMinus) {
+    if (str == NULL || base == NULL || isMinus == NULL) {
         return POINTER_ERROR;
     }
 
-    if (strlen(number) == 0) {
-        return BAD_INPUT;
+    char* p = str;
+    int num = 0;
+    *isMinus = 1;
+
+    if (str[0] == '-') {
+        *isMinus = -1;
+        ++p;
+    }
+    if (str[0] == '+') {
+        ++p;
     }
 
-    int min_base = 2;
-    
-    for (int i = 0; number[i] != '\0'; i++) {
-        char c = number[i];
-        int digit_value;
-        
-        if (isdigit(c)) {
-            digit_value = c - '0';
-        } else if (isalpha(c)) {
-            digit_value = tolower(c) - 'a' + 10;
-        } else {
-            return INVALID_NUMBER_ERROR;
-        }
-        
-        if (digit_value + 1 > min_base) {
-            min_base = digit_value + 1;
-        }
-        
-        if (min_base > 36) {
-            return INVALID_NUMBER_ERROR;
-        }
+    if (*p == '\0') {
+        return EMPTY_INPUT;
     }
-    
-    *result_base = min_base;
+
+    while (*p) {
+        if (isdigit(*p)) {
+            num = *p - '0';
+        } else if (isalpha(*p)) {
+            num = toupper(*p) - 'A' + 10;
+        } else {
+            return WRONG_ARGUMENTS;
+        }
+
+        if (num >= *base) {
+            return INVALID_DIGIT;
+        }
+        ++p;
+    }
     return OK;
 }
 
-errorCodes convert_to_decimal(const char* number, int base, long long* result) {
-    if (number == NULL || result == NULL) {
+errorCodes toDecInt(char* str, const int base, long* num) {
+    if (str == NULL || num == NULL) {
         return POINTER_ERROR;
     }
 
-    if (base < 2 || base > 36) {
-        return BAD_INPUT;
+    char* ptr = str;
+    int isMinus = 1;
+    long result = 0;
+
+    if (str[0] == '-') {
+        isMinus = -1;
+        ++ptr;
+    }
+    if (str[0] == '+') {
+        ++ptr;
     }
 
-    long long res = 0;
-    
-    for (int i = 0; number[i] != '\0'; i++) {
-        char c = number[i];
-        int digit_value;
-        
-        if (isdigit(c)) {
-            digit_value = c - '0';
+    while (*ptr) {
+        int digit;
+        if (isdigit(*ptr)) {
+            digit = *ptr - '0';
+        } else if (isalpha(*ptr)) {
+            digit = toupper(*ptr) - 'A' + 10;
         } else {
-            digit_value = tolower(c) - 'a' + 10;
+            return WRONG_ARGUMENTS;
         }
 
-        // Проверка что цифра допустима для данного основания
-        if (digit_value >= base) {
-            return INVALID_NUMBER_ERROR;
+        if (digit >= base) {
+            return INVALID_DIGIT;
         }
-        
-        // Проверка на переполнение
-        if (res > (LLONG_MAX - digit_value) / base) {
-            *result = LLONG_MAX;
+
+        if (result > (LONG_MAX - digit) / base) {
             return OVERFLOW_ERROR;
         }
-        
-        res = res * base + digit_value;
+
+        result = result * base + digit;
+        ++ptr;
     }
-    
-    *result = res;
+
+    *num = result * isMinus;
     return OK;
 }
 
-errorCodes remove_leading_zeros(const char* number, char** result) {
-    if (number == NULL || result == NULL) {
+errorCodes toNsystem(char* str, const int base, long* num) {
+    if (str == NULL || num == NULL) {
         return POINTER_ERROR;
     }
 
-    const char* ptr = number;
-    
-    // Пропускаем ведущие нули, но оставляем один ноль если число состоит только из нулей
-    while (*ptr == '0' && *(ptr + 1) != '\0') {
-        ptr++;
+    int digit = 0;
+    int start = 0;
+
+    if (*num == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return OK;
     }
-    
-    char* res = malloc(strlen(ptr) + 1);
-    if (res == NULL) {
-        return MALLOC_ERROR;
+
+    int isNegative = (*num < 0);
+    unsigned long tempNum = isNegative ? -(*num) : *num;
+
+    if (isNegative) {
+        str[0] = '-';
+        start = 1;
     }
-    
-    strcpy(res, ptr);
-    *result = res;
+
+    int len = start;
+
+    while (tempNum) {
+        if (len >= BUFSIZ - 1) {
+            return OVERFLOW_ERROR;
+        }
+
+        digit = tempNum % base;
+        if (digit > 9) {
+            str[len] = digit - 10 + 'A';
+        } else {
+            str[len] = digit + '0';
+        }
+        len++;
+        tempNum /= base;
+    }
+    str[len] = '\0';
+
+    for (int i = start, j = len - 1; i < j; i++, j--) {
+        char tmp = str[i];
+        str[i] = str[j];
+        str[j] = tmp;
+    }
+
     return OK;
+}
+
+errorCodes removeLeadingZeros(char* str) {
+    if (str == NULL) {
+        return POINTER_ERROR;
+    }
+
+    char* src = str;
+    char* dst = str;
+    int isNegative = 0;
+
+    if (*src == '-') {
+        isNegative = 1;
+        *dst++ = *src++;
+    } else if (*src == '+') {
+        src++;
+    }
+
+    while (*src == '0') {
+        src++;
+    }
+
+    if (*src == '\0' && src > str) {
+        if (isNegative) {
+            str[0] = '-';
+            str[1] = '0';
+            str[2] = '\0';
+        } else {
+            str[0] = '0';
+            str[1] = '\0';
+        }
+        return OK;
+    }
+
+    if (isNegative) {
+        dst = str + 1;
+    }
+    while (*src) {
+        *dst++ = *src++;
+    }
+    *dst = '\0';
+
+    return OK;
+}
+
+errorCodes findMinBase(char* numberStr, int* minBase) {
+    if (numberStr == NULL || minBase == NULL) {
+        return POINTER_ERROR;
+    }
+
+    char temp[1024];
+    strcpy(temp, numberStr);
+
+    char* digits = temp;
+    if (*digits == '-' || *digits == '+') {
+        digits++;
+    }
+
+    if (strcmp(digits, "0") == 0) {
+        *minBase = 2;
+        return OK;
+    }
+
+    int maxDigit = 0;
+    int hasValidDigits = 0;
+
+    for (char* p = digits; *p; p++) {
+        int digit;
+        if (isdigit(*p)) {
+            digit = *p - '0';
+            hasValidDigits = 1;
+        } else if (isalpha(*p)) {
+            digit = toupper(*p) - 'A' + 10;
+            hasValidDigits = 1;
+        } else {
+            return INVALID_NUMBER;
+        }
+
+        if (digit > maxDigit) {
+            maxDigit = digit;
+        }
+    }
+
+    if (!hasValidDigits) {
+        return INVALID_NUMBER;
+    }
+
+    *minBase = (maxDigit + 1 > 2) ? maxDigit + 1 : 2;
+
+    int isMinus;
+    errorCodes result = numChecker(numberStr, minBase, &isMinus);
+
+    if (result == OK) {
+        return OK;
+    } else {
+        for (int base = *minBase + 1; base <= 36; base++) {
+            result = numChecker(numberStr, &base, &isMinus);
+            if (result == OK) {
+                *minBase = base;
+                return OK;
+            }
+        }
+    }
+
+    return INVALID_NUMBER;
 }

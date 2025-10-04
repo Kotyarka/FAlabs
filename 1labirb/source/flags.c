@@ -1,4 +1,4 @@
-#include "flags.h"
+#include "../include/flags.h"
 
 errorCodes convertStrToNum(const char* str, int* num) {
     if (str == NULL || num == NULL) {

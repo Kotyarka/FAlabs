@@ -22,16 +22,11 @@ typedef struct {
     double r2;
 } quadraticSolution;
 
-// Базовые функции
 errorCodes convertStrToNum(const char* str, int* num);
 errorCodes isFlagValid(const char* flag);
-
-// Функции для проверки ввода (посимвольно)
-int isValidInteger(const char* str);
-int isValidDouble(const char* str);
-int canFormTriangle(float a, float b, float c);
-
-// Основные функции флагов
+errorCodes isValidInteger(const char* str);
+errorCodes isValidDouble(const char* str);
+errorCodes canFormTriangle(float a, float b, float c);
 errorCodes equationSolving(double eps, double a, double b, double c, quadraticSolution* answer);
 errorCodes q(double eps, double a, double b, double c, quadraticSolution* answer);
 errorCodes m(int a, int b, int* isMultiple);

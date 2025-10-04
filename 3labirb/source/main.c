@@ -27,8 +27,8 @@ int main(int argc, char* argv[]) {
                 return WRONG_ARGUMENTS;
             }
             
-            // Проверка корректности epsilon (вещественное число)
-            if (!isValidDouble(argv[2])) {
+            errorCodes epsValidation = isValidDouble(argv[2]);
+            if (epsValidation != OK) {
                 printf("Error: epsilon must be a valid number\n");
                 return BAD_INPUT;
             }
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
                 return BAD_INPUT;
             }
             
-            // Проверка корректности коэффициентов (вещественные числа)
             for (int i = 3; i < 6; i++) {
-                if (!isValidDouble(argv[i])) {
+                errorCodes coeffValidation = isValidDouble(argv[i]);
+                if (coeffValidation != OK) {
                     printf("Error: coefficient must be a valid number\n");
                     return BAD_INPUT;
                 }
@@ -54,9 +54,7 @@ int main(int argc, char* argv[]) {
             int permutationCount = 0;
             
             printf("All permutations and their solutions:\n");
-            printf("=====================================\n");
             
-            // Перебор всех уникальных перестановок коэффициентов
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
                     for (int k = 0; k < 3; k++) {
@@ -64,11 +62,9 @@ int main(int argc, char* argv[]) {
                             permutationCount++;
                             quadraticSolution solution;
                             
-                            // Решаем уравнение для текущей перестановки
                             resultCode = equationSolving(eps, coefficients[i], coefficients[j], coefficients[k], &solution);
                             
                             if (resultCode == OK) {
-                                // Вывод в формате "коэффициенты: корни"
                                 printf("Coefficients: a=%.2f, b=%.2f, c=%.2f -> ", 
                                        coefficients[i], coefficients[j], coefficients[k]);
                                 
@@ -100,9 +96,9 @@ int main(int argc, char* argv[]) {
                 printf("Wrong value of arguments for -m. Expected: -m num1 num2\n");
                 return WRONG_ARGUMENTS;
             }
-            
-            // Проверка корректности чисел (целые числа)
-            if (!isValidInteger(argv[2]) || !isValidInteger(argv[3])) {
+            errorCodes num1Validation = isValidInteger(argv[2]);
+            errorCodes num2Validation = isValidInteger(argv[3]);
+            if (num1Validation != OK || num2Validation != OK) {
                 printf("Error: numbers must be valid integers\n");
                 return BAD_INPUT;
             }
@@ -134,8 +130,8 @@ int main(int argc, char* argv[]) {
                 return WRONG_ARGUMENTS;
             }
             
-            // Проверка корректности epsilon (вещественное число)
-            if (!isValidDouble(argv[2])) {
+            errorCodes epsValidation = isValidDouble(argv[2]);
+            if (epsValidation != OK) {
                 printf("Error: epsilon must be a valid number\n");
                 return BAD_INPUT;
             }
@@ -145,9 +141,9 @@ int main(int argc, char* argv[]) {
                 return BAD_INPUT;
             }
             
-            // Проверка корректности сторон (вещественные числа)
             for (int i = 3; i < 6; i++) {
-                if (!isValidDouble(argv[i])) {
+                errorCodes sideValidation = isValidDouble(argv[i]);
+                if (sideValidation != OK) {
                     printf("Error: side length must be a valid number\n");
                     return BAD_INPUT;
                 }
@@ -157,14 +153,12 @@ int main(int argc, char* argv[]) {
             float b = atof(argv[4]);
             float c = atof(argv[5]);
             
-            // Проверка на положительность сторон
             if (a <= 0 || b <= 0 || c <= 0) {
                 printf("Error: all sides must be positive numbers\n");
                 return BAD_INPUT;
             }
-            
-            // Проверка существования треугольника
-            if (!canFormTriangle(a, b, c)) {
+            errorCodes triangleValidation = canFormTriangle(a, b, c);
+            if (triangleValidation != OK) {
                 printf("Error: sides %.2f, %.2f, %.2f cannot form any triangle\n", a, b, c);
                 return BAD_INPUT;
             }
@@ -188,7 +182,6 @@ int main(int argc, char* argv[]) {
     }
     
     if (resultCode != OK) {
-        printf("Error occurred: %d\n", resultCode);
         return resultCode;
     }
     

@@ -1,11 +1,12 @@
-#ifndef NUMBERS_H
-#define NUMBERS_H
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
+#ifndef NUMBERS_H
+#define NUMBERS_H
+
 
 typedef enum {
     OK = 0,
@@ -14,15 +15,15 @@ typedef enum {
     MALLOC_ERROR = 3,
     POINTER_ERROR = 4,
     WRONG_ARGUMENTS = 5,
+    INVALID_BASE = 6,
+    EMPTY_INPUT = 7,
+    INVALID_DIGIT = 8,
+    CONVERSION_ERROR = 9
 } errorCodes;
 
-errorCodes isValidChar(char c, int base, int* isValid);
-errorCodes charToValue(char c, int* value);
-errorCodes convertFromBase(const char* str, int base, long long* result);
-errorCodes convertToBase(long long num, int base, char* buffer, int bufferSize);
-errorCodes removeLeadingZeros(char* str);
-errorCodes readBase(int* base);
-errorCodes processNumbers(int base, long long* maxAbsValue, char* maxOriginalStr, int maxStrSize);
-errorCodes printResults(long long maxAbsValue, const char* maxOriginalStr);
+errorCodes baseParsing(char* str, int* base);
+errorCodes numChecker(char* str, const int* base, int* isMinus);
+errorCodes toDecInt(char* str, const int base, long* num);
+errorCodes toNsystem(char* str, const int base, long* num);
 
 #endif

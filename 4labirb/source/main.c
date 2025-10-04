@@ -21,8 +21,7 @@ int main(int argc, char* argv[]) {
 
     double results[15];
     getResults(eps, results);
-    
-    // Вывод результатов в main
+
     char* constants[5] = {"e", "pi", "ln2", "sqrt2", "gamma"};
     
     printf("Calculation using limits\n");

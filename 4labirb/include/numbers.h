@@ -37,7 +37,7 @@ errorCodes calculatePiRow(double eps, double* result);
 errorCodes calculateLnRow(double eps, double* result);
 errorCodes calculateSqrt2Row(double eps, double* result);
 errorCodes calculateGammaRow(double eps, double* result);
-
+    
 errorCodes calculateEEquation(double eps, double* result);
 errorCodes calculatePiEquation(double eps, double* result);
 errorCodes calculateLnEquation(double eps, double* result);

@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 
     if ((flag[1] == 'n' || (flag[0] == '/' && flag[1] == 'n')) && strlen(flag) == 3) {
         if (argc != 4) {
-            printf("Wrong number of arguments\n", flag);
+            printf("Wrong number of arguments\n");
             return WRONG_ARGUMENTS;
         }
         outputName = argv[3];
@@ -25,19 +25,19 @@ int main(int argc, char* argv[]) {
 
     errorCodes flagCheck = isFlagValid(flag);
     if (flagCheck != OK) {
-        printf("Invalid flag", flag);
+        printf("Invalid flag");
         return flagCheck;
     }
     
     FILE* input = fopen(inputFile, "r");
     if (input == NULL) {
-        printf("Cannot open input file\n", inputFile);
+        printf("Cannot open input file\n");
         return OPENING_FILE_ERROR;
     }
 
     FILE* output = fopen(outputName, "w");
     if (output == NULL) {
-        printf("Cannot open output file\n", outputName);
+        printf("Cannot open output file\n");
         fclose(input);
         return OPENING_FILE_ERROR;
     }

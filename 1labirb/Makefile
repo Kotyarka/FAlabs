@@ -1,15 +1,20 @@
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -g
+CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -g -Iinclude
 LDFLAGS = -fsanitize=address -lm
 
 # Имена исполняемых файлов
 MAIN_PROGRAM = program
 TEST_PROGRAM = internal_tests
 
+# Папки
+SRC_DIR = source
+INC_DIR = include
+TEST_DIR = tests
+
 # Исходные файлы
-MAIN_SOURCES = main.c flags.c
-TEST_SOURCES = internal_tests.c flags.c
+MAIN_SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/flags.c
+TEST_SOURCES = $(TEST_DIR)/internal_tests.c $(SRC_DIR)/flags.c
 
 # Объектные файлы
 MAIN_OBJECTS = $(MAIN_SOURCES:.c=.o)
@@ -27,15 +32,15 @@ $(TEST_PROGRAM): $(TEST_OBJECTS)
 	$(CC) $(LDFLAGS) -o $(TEST_PROGRAM) $(TEST_OBJECTS)
 
 # Компиляция объектных файлов для основной программы
-main.o: main.c flags.h
-	$(CC) $(CFLAGS) -c main.c
+$(SRC_DIR)/main.o: $(SRC_DIR)/main.c $(INC_DIR)/flags.h
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/main.c -o $(SRC_DIR)/main.o
 
-flags.o: flags.c flags.h
-	$(CC) $(CFLAGS) -c flags.c
+$(SRC_DIR)/flags.o: $(SRC_DIR)/flags.c $(INC_DIR)/flags.h
+	$(CC) $(CFLAGS) -c $(SRC_DIR)/flags.c -o $(SRC_DIR)/flags.o
 
 # Компиляция объектных файлов для тестов
-internal_tests.o: internal_tests.c flags.h
-	$(CC) $(CFLAGS) -c internal_tests.c
+$(TEST_DIR)/internal_tests.o: $(TEST_DIR)/internal_tests.c $(INC_DIR)/flags.h
+	$(CC) $(CFLAGS) -c $(TEST_DIR)/internal_tests.c -o $(TEST_DIR)/internal_tests.o
 
 # Запуск тестов
 test: $(MAIN_PROGRAM) $(TEST_PROGRAM)
@@ -102,6 +107,6 @@ test: $(MAIN_PROGRAM) $(TEST_PROGRAM)
 	@echo "All tests completed!"
 
 clean:
-	rm -f $(MAIN_PROGRAM) $(TEST_PROGRAM) *.o
+	rm -f $(MAIN_PROGRAM) $(TEST_PROGRAM) $(SRC_DIR)/*.o $(TEST_DIR)/*.o
 
 .PHONY: all test clean

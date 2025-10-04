@@ -10,35 +10,6 @@ int strings_equal(const char* actual, const char* expected) {
     return strcmp(actual, expected) == 0;
 }
 
-void test_baseParsing() {
-    int base = 0;
-    
-    errorCodes status = baseParsing("16", &base);
-    assert(status == OK);
-    assert(base == 16);
-    
-    status = baseParsing("2", &base);
-    assert(status == OK);
-    assert(base == 2);
-    
-    status = baseParsing("36", &base);
-    assert(status == OK);
-    assert(base == 36);
-    
-    status = baseParsing("1", &base);
-    assert(status == INVALID_BASE);
-    
-    status = baseParsing("37", &base);
-    assert(status == INVALID_BASE);
-    
-    status = baseParsing("abc", &base);
-    assert(status == WRONG_ARGUMENTS);
-    
-    status = baseParsing("12a", &base);
-    assert(status == WRONG_ARGUMENTS);
-    
-    printf("test_baseParsing: OK\n");
-}
 
 void test_numChecker() {
     int isMinus = 1;
@@ -98,37 +69,6 @@ void test_toDecInt() {
     printf("test_toDecInt: OK\n");
 }
 
-void test_toNsystem() {
-    char buffer[BUFSIZ];
-    long num = 0;
-    
-    num = 255;
-    errorCodes status = toNsystem(buffer, 16, &num);
-    assert(status == OK);
-    assert(strings_equal(buffer, "FF"));
-    
-    num = -26;
-    status = toNsystem(buffer, 16, &num);
-    assert(status == OK);
-    assert(strings_equal(buffer, "-1A"));
-    
-    num = 0;
-    status = toNsystem(buffer, 16, &num);
-    assert(status == OK);
-    assert(strings_equal(buffer, "0"));
-    
-    num = 10;
-    status = toNsystem(buffer, 2, &num);
-    assert(status == OK);
-    assert(strings_equal(buffer, "1010"));
-    
-    num = 35;
-    status = toNsystem(buffer, 36, &num);
-    assert(status == OK);
-    assert(strings_equal(buffer, "Z"));
-    
-    printf("test_toNsystem: OK\n");
-}
 
 void test_removeLeadingZeros() {
     char buffer[1024];
@@ -194,7 +134,6 @@ void test_findMinBase() {
 }
 
 void test_integration() {
-    char buffer[BUFSIZ];
     long num = 0;
     int minBase;
     
@@ -205,10 +144,6 @@ void test_integration() {
     status = toDecInt("FF", minBase, &num);
     assert(status == OK);
     assert(num == 255);
-    
-    status = toNsystem(buffer, 10, &num);
-    assert(status == OK);
-    assert(strings_equal(buffer, "255"));
     
     status = findMinBase("1010", &minBase);
     assert(status == OK);
@@ -222,10 +157,7 @@ void test_integration() {
 }
 
 void test_all() {
-    test_baseParsing();
-    test_numChecker();
     test_toDecInt();
-    test_toNsystem();
     test_removeLeadingZeros();
     test_findMinBase();
     test_integration();

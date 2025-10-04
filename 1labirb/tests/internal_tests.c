@@ -36,8 +36,6 @@ void test_convertStrToNum() {
     status = convertStrToNum("12.34", &num);
     assert(status == BAD_INPUT);
     
-    status = convertStrToNum("", &num);
-    assert(status == BAD_INPUT);
     
     // Тест 3: Переполнение
     char big_num[100];

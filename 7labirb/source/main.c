@@ -13,12 +13,12 @@ int main(int argc, char* argv[]) {
     FILE* output = fopen(argv[2], "w");
     
     if (!input) {
-        printf("Cannot open input file '%s'\n", argv[1]);
+        printf("Cannot open input file");
         return FILE_ERROR;
     }
     
     if (!output) {
-        printf("Cannot open output file '%s'\n", argv[2]);
+        printf("Cannot open output file");
         fclose(input);
         return FILE_ERROR;
     }

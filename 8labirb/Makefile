@@ -1,6 +1,6 @@
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -g
+CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -g -Iinclude
 LDFLAGS = -fsanitize=address -lm
 
 # Имена исполняемых файлов
@@ -8,8 +8,8 @@ MAIN_PROGRAM = program
 TEST_PROGRAM = internal_tests
 
 # Исходные файлы
-MAIN_SOURCES = main.c numbers.c
-TEST_SOURCES = internal_tests.c numbers.c
+MAIN_SOURCES = source/main.c source/numbers.c
+TEST_SOURCES = tests/internal_tests.c source/numbers.c
 
 # Объектные файлы
 MAIN_OBJECTS = $(MAIN_SOURCES:.c=.o)
@@ -26,22 +26,20 @@ $(MAIN_PROGRAM): $(MAIN_OBJECTS)
 $(TEST_PROGRAM): $(TEST_OBJECTS)
 	$(CC) $(LDFLAGS) -o $(TEST_PROGRAM) $(TEST_OBJECTS)
 
-# Компиляция объектных файлов для основной программы
-main.o: main.c numbers.h
-	$(CC) $(CFLAGS) -c main.c
+# Компиляция объектных файлов
+source/%.o: source/%.c include/numbers.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-numbers.o: numbers.c numbers.h
-	$(CC) $(CFLAGS) -c numbers.c
+tests/%.o: tests/%.c include/numbers.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Компиляция объектных файлов для тестов
-internal_tests.o: internal_tests.c numbers.h
-	$(CC) $(CFLAGS) -c internal_tests.c
-
-# Запуск тестов
-test: $(MAIN_PROGRAM) $(TEST_PROGRAM)
+# Запуск только внутренних тестов (без внешних)
+test-internal: $(TEST_PROGRAM)
 	@echo "=== Running internal tests ==="
 	./$(TEST_PROGRAM)
-	@echo ""
+
+# Запуск только внешних тестов
+test-external: $(MAIN_PROGRAM)
 	@echo "=== Running external tests ==="
 	@echo ""
 	
@@ -61,11 +59,11 @@ test: $(MAIN_PROGRAM) $(TEST_PROGRAM)
 	@printf "2\n1010\n1101\nStop\n" | ./$(MAIN_PROGRAM) 2>&1 | grep -q "Max absolute number" && echo "✓ PASS" || echo "✗ FAIL"
 	@echo ""
 	
-	@echo "Test 3: Invalid number format"
+	@echo "Test 3: Invalid number format (program exits on error)"
 	@echo "Testing invalid digit for base:"
-	@printf "10\n12A\nStop\n" | ./$(MAIN_PROGRAM) 2>&1 | grep -q "too much for this base" && echo "✓ PASS" || echo "✗ FAIL"
+	@printf "10\n12A\n" | ./$(MAIN_PROGRAM) 2>&1 | grep -q "too large for base" && echo "✓ PASS" || echo "✗ FAIL"
 	@echo "Testing wrong symbols in number:"
-	@printf "10\n12$3\nStop\n" | ./$(MAIN_PROGRAM) 2>&1 | grep -q "wrong symbols" && echo "✓ PASS" || echo "✗ FAIL"
+	@printf "10\n12$3\n" | ./$(MAIN_PROGRAM) 2>&1 | grep -q "Wrong symbols" && echo "✓ PASS" || echo "✗ FAIL"
 	@echo ""
 	
 	@echo "Test 4: Negative numbers handling"
@@ -83,10 +81,38 @@ test: $(MAIN_PROGRAM) $(TEST_PROGRAM)
 	@printf "16\nStop\n" | ./$(MAIN_PROGRAM) 2>&1 | grep -q "No numbers entered" && echo "✓ PASS" || echo "✗ FAIL"
 	@echo ""
 	
-	@echo "All tests completed!"
+	@echo "All external tests completed!"
+
+# Альтернативные тесты с проверкой кодов возврата
+test-external-exit-codes: $(MAIN_PROGRAM)
+	@echo "=== Testing exit codes ==="
+	@echo "Testing invalid base (abc):"
+	@echo "abc" | ./$(MAIN_PROGRAM) > /dev/null 2>&1; test $$? -eq 2 && echo "✓ PASS (WRONG_ARGUMENTS)" || echo "✗ FAIL"
+	@echo "Testing invalid digit (base 10, number 12A):"
+	@printf "10\n12A\n" | ./$(MAIN_PROGRAM) > /dev/null 2>&1; test $$? -eq 3 && echo "✓ PASS (INVALID_DIGIT)" || echo "✗ FAIL"
+	@echo "Testing wrong symbols (base 10, number 12\$3):"
+	@printf "10\n12\$3\n" | ./$(MAIN_PROGRAM) > /dev/null 2>&1; test $$? -eq 2 && echo "✓ PASS (WRONG_ARGUMENTS)" || echo "✗ FAIL"
+
+# Полный запуск тестов
+test: test-internal test-external
+
+# Отладочная сборка тестов
+debug-test: CFLAGS += -DDEBUG -O0
+debug-test: $(TEST_PROGRAM)
+	@echo "=== Running tests with debug output ==="
+	./$(TEST_PROGRAM)
+
+# Показать вывод программы для отладки
+debug-main: $(MAIN_PROGRAM)
+	@echo "=== Debug program output ==="
+	@echo "Testing invalid digit (base 10, number 12A):"
+	@printf "10\n12A\n" | ./$(MAIN_PROGRAM) 2>&1 || echo "Exit code: $$?"
+	@echo ""
+	@echo "Testing wrong symbols (base 10, number 12\$3):"
+	@printf "10\n12\$3\n" | ./$(MAIN_PROGRAM) 2>&1 || echo "Exit code: $$?"
 
 # Очистка
 clean:
-	rm -f $(MAIN_PROGRAM) $(TEST_PROGRAM) *.o
+	rm -f $(MAIN_PROGRAM) $(TEST_PROGRAM) source/*.o tests/*.o
 
-.PHONY: all test clean
+.PHONY: all test test-internal test-external test-external-exit-codes debug-test debug-main clean

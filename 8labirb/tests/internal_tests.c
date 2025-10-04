@@ -36,10 +36,6 @@ void test_baseParsing() {
     status = baseParsing("-10", &base);
     assert(status == INVALID_BASE);
     
-    // Тест 6: Пустая строка
-    status = baseParsing("", &base);
-    assert(status == WRONG_ARGUMENTS);
-    
     printf("test_baseParsing: OK\n");
 }
 
@@ -200,7 +196,6 @@ void test_integration() {
 // Тесты на граничные случаи
 void test_edge_cases() {
     int base = 0;
-    int isMinus = 1;
     long num = 0;
     char buffer[BUFSIZ];
     

@@ -1,27 +1,5 @@
 #include "../include/numbers.h"
 
-errorCodes baseParsing(char* str, int* base) {
-    if (str == NULL || base == NULL) {
-        return POINTER_ERROR;
-    }
-
-    char* p;
-    errno = 0;
-    long result = strtol(str, &p, 10);
-
-    if (*p != '\0') {
-        return WRONG_ARGUMENTS;
-    }
-    if (errno == ERANGE || result == LONG_MAX || result == LONG_MIN) {
-        return OVERFLOW_ERROR;
-    }
-    *base = (int)result;
-    if (*base < 2 || *base > 36) {
-        return INVALID_BASE;
-    }
-    return OK;
-}
-
 errorCodes numChecker(char* str, const int* base, int* isMinus) {
     if (str == NULL || base == NULL || isMinus == NULL) {
         return POINTER_ERROR;
@@ -100,55 +78,6 @@ errorCodes toDecInt(char* str, const int base, long* num) {
     }
 
     *num = result * isMinus;
-    return OK;
-}
-
-errorCodes toNsystem(char* str, const int base, long* num) {
-    if (str == NULL || num == NULL) {
-        return POINTER_ERROR;
-    }
-
-    int digit = 0;
-    int start = 0;
-
-    if (*num == 0) {
-        str[0] = '0';
-        str[1] = '\0';
-        return OK;
-    }
-
-    int isNegative = (*num < 0);
-    unsigned long tempNum = isNegative ? -(*num) : *num;
-
-    if (isNegative) {
-        str[0] = '-';
-        start = 1;
-    }
-
-    int len = start;
-
-    while (tempNum) {
-        if (len >= BUFSIZ - 1) {
-            return OVERFLOW_ERROR;
-        }
-
-        digit = tempNum % base;
-        if (digit > 9) {
-            str[len] = digit - 10 + 'A';
-        } else {
-            str[len] = digit + '0';
-        }
-        len++;
-        tempNum /= base;
-    }
-    str[len] = '\0';
-
-    for (int i = start, j = len - 1; i < j; i++, j--) {
-        char tmp = str[i];
-        str[i] = str[j];
-        str[j] = tmp;
-    }
-
     return OK;
 }
 

@@ -9,6 +9,6 @@ typedef enum {
     INDEX_ERROR  = 4,
 } errorCodes;
 
-errorCodes findPrimes(int n, int** primes_array, int* primes_count);
+errorCodes findPrimes(int n, int** primesArray, int* primesCount);
 
 #endif

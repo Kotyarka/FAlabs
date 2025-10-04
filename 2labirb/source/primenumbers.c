@@ -4,10 +4,10 @@
 #include <stdbool.h>
 #include "../include/primenumbers.h"
 
-errorCodes findPrimes(int n, int** primes_array, int* primes_count) {
+errorCodes findPrimes(int n, int** primesArray, int* primesCount) {
     if (n <= 0) {
-        *primes_count = 0;
-        *primes_array = NULL;
+        *primesCount = 0;
+        *primesArray = NULL;
         return OK;
     }
 
@@ -15,56 +15,56 @@ errorCodes findPrimes(int n, int** primes_array, int* primes_count) {
         return OVERFLOW_ERROR;
     }
 
-    int upper_bound;
+    int upperBound;
     if (n < 6) {
-        upper_bound = 20; 
+        upperBound = 20; 
     } else {
-        upper_bound = (int)(n * (log(n) + log(log(n)))) + 100;
+        upperBound = (int)(n * (log(n) + log(log(n)))) + 100;
     }
 
-    bool* sieve = (bool*)malloc((upper_bound + 1) * sizeof(bool));
+    bool* sieve = (bool*)malloc((upperBound + 1) * sizeof(bool));
     if (sieve == NULL) {
         return MALLOC_ERROR;
     }
 
-    for (int i = 0; i <= upper_bound; i++) {
+    for (int i = 0; i <= upperBound; i++) {
         sieve[i] = true;
     }
     sieve[0] = false;
     sieve[1] = false;
 
 
-    int sqrt_upper = (int)sqrt(upper_bound);
-    for (int i = 2; i <= sqrt_upper; i++) {
+    int sqrtUpper = (int)sqrt(upperBound);
+    for (int i = 2; i <= sqrtUpper; i++) {
         if (sieve[i]) {
-            for (int j = i * i; j <= upper_bound; j += i) {
+            for (int j = i * i; j <= upperBound; j += i) {
                 sieve[j] = false;
             }
         }
     }
 
-    *primes_count = 0;
-    for (int i = 2; i <= upper_bound; i++) {
+    *primesCount = 0;
+    for (int i = 2; i <= upperBound; i++) {
         if (sieve[i]) {
-            (*primes_count)++;
+            (*primesCount)++;
         }
     }
 
-    if (*primes_count < n) {
+    if (*primesCount < n) {
         free(sieve);
         return OVERFLOW_ERROR;
     }
 
-    *primes_array = (int*)malloc(n * sizeof(int));
-    if (*primes_array == NULL) {
+    *primesArray = (int*)malloc(n * sizeof(int));
+    if (*primesArray == NULL) {
         free(sieve);
         return MALLOC_ERROR;
     }
 
     int index = 0;
-    for (int i = 2; i <= upper_bound && index < n; i++) {
+    for (int i = 2; i <= upperBound && index < n; i++) {
         if (sieve[i]) {
-            (*primes_array)[index++] = i;
+            (*primesArray)[index++] = i;
         }
     }
 

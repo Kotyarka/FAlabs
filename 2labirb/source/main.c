@@ -28,17 +28,17 @@ int main() {
         }
     }
 
-    int max_number = inputMas[0];
+    int maxNumber = inputMas[0];
     for (int i = 1; i < T; i++) {
-        if (inputMas[i] > max_number) {
-            max_number = inputMas[i];
+        if (inputMas[i] > maxNumber) {
+            maxNumber = inputMas[i];
         }
     }
 
-    int primes_count;
-    int* primes_array;
+    int primesCount;
+    int* primesArray;
 
-    errorCodes result = findPrimes(max_number, &primes_array, &primes_count);
+    errorCodes result = findPrimes(maxNumber, &primesArray, &primesCount);
 
     if (result != OK) {
         free(inputMas);
@@ -64,13 +64,13 @@ int main() {
         if (index <= 0) {
             printf("Prime index must be positive");
             free(inputMas);
-            free(primes_array);
+            free(primesArray);
             return INDEX_ERROR;
         }
-        printf("%d. The %d prime number is: %d\n", i + 1, index, primes_array[index - 1]);
+        printf("%d. The %d prime number is: %d\n", i + 1, index, primesArray[index - 1]);
     }
     
     free(inputMas);
-    free(primes_array);
+    free(primesArray);
     return OK;
 }

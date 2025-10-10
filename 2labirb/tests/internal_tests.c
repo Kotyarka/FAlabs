@@ -1,231 +1,276 @@
 #include <stdio.h>
-#include <assert.h>
-#include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/wait.h>
+#include <assert.h>
+#include <stdbool.h>
+#include <math.h>
 #include "../include/primenumbers.h"
 
-// Функция для запуска программы с входными данными и проверки вывода
-int test_program(const char* input, const char* expected_output, int expected_exit_code) {
-    int pipe_stdin[2], pipe_stdout[2];
-    pid_t pid;
-    
-    // Создаем пайпы для stdin и stdout
-    if (pipe(pipe_stdin) == -1 || pipe(pipe_stdout) == -1) {
-        perror("pipe");
-        return 0;
+static bool isPrime(int n) {
+    if (n < 2) return false;
+    if (n == 2) return true;
+    if (n % 2 == 0) return false;
+    for (int i = 3; i * i <= n; i += 2) {
+        if (n % i == 0) return false;
     }
+    return true;
+}
+
+static void verifyFirstNPrimes(int* primes, int n) {
+    int knownPrimes[] = {
+        2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+        73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151,
+        157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229
+    };
     
-    pid = fork();
-    if (pid == -1) {
-        perror("fork");
-        return 0;
-    }
-    
-    if (pid == 0) { // Дочерний процесс
-        close(pipe_stdin[1]);  // Закрываем запись в stdin
-        close(pipe_stdout[0]); // Закрываем чтение из stdout
-        
-        // Перенаправляем stdin и stdout
-        dup2(pipe_stdin[0], STDIN_FILENO);
-        dup2(pipe_stdout[1], STDOUT_FILENO);
-        
-        // Закрываем оставшиеся дескрипторы
-        close(pipe_stdin[0]);
-        close(pipe_stdout[1]);
-        
-        // Запускаем основную программу
-        execl("./prime_program", "prime_program", NULL);
-        perror("execl");
-        exit(1);
-    } else { // Родительский процесс
-        close(pipe_stdin[0]);  // Закрываем чтение из stdin
-        close(pipe_stdout[1]); // Закрываем запись в stdout
-        
-        // Записываем входные данные
-        if (input != NULL) {
-            write(pipe_stdin[1], input, strlen(input));
-        }
-        close(pipe_stdin[1]);
-        
-        // Читаем вывод
-        char buffer[4096];
-        ssize_t bytes_read = read(pipe_stdout[0], buffer, sizeof(buffer) - 1);
-        close(pipe_stdout[0]);
-        
-        if (bytes_read > 0) {
-            buffer[bytes_read] = '\0';
-        } else {
-            buffer[0] = '\0';
-        }
-        
-        // Ждем завершения дочернего процесса
-        int status;
-        waitpid(pid, &status, 0);
-        int exit_code = WEXITSTATUS(status);
-        
-        // Проверяем результат
-        int success = 1;
-        
-        if (expected_exit_code != -1 && exit_code != expected_exit_code) {
-            printf("FAIL: Expected exit code %d, got %d\n", expected_exit_code, exit_code);
-            success = 0;
-        }
-        
-        if (expected_output != NULL && strstr(buffer, expected_output) == NULL) {
-            printf("FAIL: Expected output containing '%s', got: %s\n", expected_output, buffer);
-            success = 0;
-        }
-        
-        if (success) {
-            printf("PASS: Input '%s' -> Output contains '%s'\n", 
-                   input ? input : "(null)", 
-                   expected_output ? expected_output : "(any)");
-        }
-        
-        return success;
+    for (int i = 0; i < n && i < 50; i++) {
+        assert(primes[i] == knownPrimes[i]);
     }
 }
 
-// Тест 1: Неверное количество тест-кейсов (отрицательное)
-void test_negative_test_cases() {
-    printf("=== Test 1: Negative number of test cases ===\n");
-    test_program("-5\n", "must be positive", BAD_INPUT);
-    printf("\n");
-}
-
-// Тест 2: Нулевое количество тест-кейсов
-void test_zero_test_cases() {
-    printf("=== Test 2: Zero test cases ===\n");
-    test_program("0\n", "must be positive", BAD_INPUT);
-    printf("\n");
-}
-
-// Тест 3: Неверный формат ввода (не число)
-void test_invalid_input_format() {
-    printf("=== Test 3: Invalid input format ===\n");
-    test_program("3\n1 2 abc\n", "Failed to read index", BAD_INPUT);
-    printf("\n");
-}
-
-// Тест 4: Неполные данные
-void test_incomplete_data() {
-    printf("=== Test 4: Incomplete data ===\n");
-    test_program("3\n1 2\n", "Failed to read index", BAD_INPUT);
-    printf("\n");
-}
-
-// Тест 5: Отрицательные индексы простых чисел
-void test_negative_prime_indices() {
-    printf("=== Test 5: Negative prime indices ===\n");
-    test_program("2\n1 -5\n", "must be positive", INDEX_ERROR);
-    printf("\n");
-}
-
-// Тест 6: Нулевые индексы простых чисел
-void test_zero_prime_indices() {
-    printf("=== Test 6: Zero prime indices ===\n");
-    test_program("1\n0\n", "must be positive", INDEX_ERROR);
-    printf("\n");
-}
-
-// Тест 7: Корректный ввод - малые числа
-void test_small_valid_input() {
-    printf("=== Test 7: Small valid input ===\n");
-    test_program("3\n1 2 3\n", "1. The 1 prime number is: 2", OK);
-    test_program("3\n1 2 3\n", "2. The 2 prime number is: 3", OK);
-    test_program("3\n1 2 3\n", "3. The 3 prime number is: 5", OK);
-    printf("\n");
-}
-
-// Тест 8: Корректный ввод - средние числа
-void test_medium_valid_input() {
-    printf("=== Test 8: Medium valid input ===\n");
-    test_program("2\n10 20\n", "10. The 10 prime number is: 29", OK);
-    test_program("2\n10 20\n", "20. The 20 prime number is: 71", OK);
-    printf("\n");
-}
-
-// Тест 9: Один тест-кейс
-void test_single_case() {
-    printf("=== Test 9: Single test case ===\n");
-    test_program("1\n5\n", "5. The 5 prime number is: 11", OK);
-    printf("\n");
-}
-
-// Тест 10: Большое количество тест-кейсов
-void test_multiple_cases() {
-    printf("=== Test 10: Multiple test cases ===\n");
-    test_program("5\n1 3 5 7 9\n", "1. The 1 prime number is: 2", OK);
-    test_program("5\n1 3 5 7 9\n", "3. The 3 prime number is: 5", OK);
-    test_program("5\n1 3 5 7 9\n", "5. The 5 prime number is: 11", OK);
-    test_program("5\n1 3 5 7 9\n", "7. The 7 prime number is: 17", OK);
-    test_program("5\n1 3 5 7 9\n", "9. The 9 prime number is: 23", OK);
-    printf("\n");
-}
-
-// Тест 11: Очень большой индекс (проверка переполнения)
-void test_large_index() {
-    printf("=== Test 11: Large index (overflow check) ===\n");
-    test_program("1\n1000000\n", "too large", OVERFLOW_ERROR);
-    printf("\n");
-}
-
-// Тест 12: Граничные случаи
-void test_boundary_cases() {
-    printf("=== Test 12: Boundary cases ===\n");
-    test_program("1\n1\n", "1. The 1 prime number is: 2", OK);
-    test_program("1\n100\n", "100. The 100 prime number is: 541", OK);
-    printf("\n");
-}
-
-// Тест 13: Сортировка индексов
-void test_sorted_indices() {
-    printf("=== Test 13: Sorted indices ===\n");
-    test_program("3\n3 1 2\n", "1. The 3 prime number is: 5", OK);
-    test_program("3\n3 1 2\n", "2. The 1 prime number is: 2", OK);
-    test_program("3\n3 1 2\n", "3. The 2 prime number is: 3", OK);
-    printf("\n");
-}
-
-// Тест 14: Повторяющиеся индексы
-void test_duplicate_indices() {
-    printf("=== Test 14: Duplicate indices ===\n");
-    test_program("3\n2 2 2\n", "1. The 2 prime number is: 3", OK);
-    test_program("3\n2 2 2\n", "2. The 2 prime number is: 3", OK);
-    test_program("3\n2 2 2\n", "3. The 2 prime number is: 3", OK);
-    printf("\n");
-}
-
-void test_all() {
-    printf("Starting comprehensive main() tests...\n\n");
+static void testFindPrimesBasic() {
+    printf("Running testFindPrimesBasic...\n");
     
-    test_negative_test_cases();
-    test_zero_test_cases();
-    test_invalid_input_format();
-    test_incomplete_data();
-    test_negative_prime_indices();
-    test_zero_prime_indices();
-    test_small_valid_input();
-    test_medium_valid_input();
-    test_single_case();
-    test_multiple_cases();
-    test_large_index();
-    test_boundary_cases();
-    test_sorted_indices();
-    test_duplicate_indices();
+    int* primesArray;
     
-    printf("All main() tests completed!\n");
+    // Тест 1: n = 1
+    errorCodes result = findPrimes(1, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    assert(primesArray[0] == 2);
+    free(primesArray);
+    
+    // Тест 2: n = 5
+    result = findPrimes(5, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    verifyFirstNPrimes(primesArray, 5);
+    free(primesArray);
+    
+    // Тест 3: n = 10
+    result = findPrimes(10, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    verifyFirstNPrimes(primesArray, 10);
+    free(primesArray);
+    
+    printf("testFindPrimesBasic: PASSED\n\n");
+}
+
+static void testFindPrimesBoundary() {
+    printf("Running testFindPrimesBoundary...\n");
+    
+    int* primesArray;
+    
+    // Тест 1: n = 0
+    errorCodes result = findPrimes(0, &primesArray);
+    assert(result == OK);
+    assert(primesArray == NULL);
+    
+    // Тест 2: n = 2
+    result = findPrimes(2, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    assert(primesArray[0] == 2);
+    assert(primesArray[1] == 3);
+    free(primesArray);
+    
+    // Тест 3: n = 100
+    result = findPrimes(100, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    
+    // Проверяем, что все числа действительно простые и в правильном порядке
+    for (int i = 0; i < 100; i++) {
+        assert(isPrime(primesArray[i]));
+        if (i > 0) {
+            assert(primesArray[i] > primesArray[i-1]);
+        }
+    }
+    // Проверяем конкретные известные значения
+    assert(primesArray[0] == 2);    // 1-е простое
+    assert(primesArray[4] == 11);   // 5-е простое
+    assert(primesArray[99] == 541); // 100-е простое
+    free(primesArray);
+    
+    printf("testFindPrimesBoundary: PASSED\n\n");
+}
+
+static void testFindPrimesErrorCases() {
+    printf("Running testFindPrimesErrorCases...\n");
+    
+    int* primesArray;
+    
+    // Тест 1: Отрицательное n
+    errorCodes result = findPrimes(-5, &primesArray);
+    assert(result == OK);
+    assert(primesArray == NULL);
+    
+    // Тест 2: Слишком большое n (больше 100000)
+    result = findPrimes(100001, &primesArray);
+    assert(result == OVERFLOW_ERROR);
+    
+    printf("testFindPrimesErrorCases: PASSED\n\n");
+}
+
+static void testFindPrimesLargeValues() {
+    printf("Running testFindPrimesLargeValues...\n");
+    
+    int* primesArray;
+    
+    // Тест с большими значениями (в пределах ограничения)
+    errorCodes result = findPrimes(1000, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    
+    // Проверяем, что первые 1000 чисел простые
+    for (int i = 0; i < 1000; i++) {
+        assert(isPrime(primesArray[i]));
+    }
+    
+    // Проверяем несколько известных значений
+    assert(primesArray[0] == 2);      // 1-е простое
+    assert(primesArray[99] == 541);   // 100-е простое
+    assert(primesArray[999] == 7919); // 1000-е простое
+    
+    free(primesArray);
+    
+    printf("testFindPrimesLargeValues: PASSED\n\n");
+}
+
+static void testFindPrimesEdgeCases() {
+    printf("Running testFindPrimesEdgeCases...\n");
+    
+    int* primesArray;
+    
+    // Тест малых значений, которые обрабатываются специально в коде (n < 6)
+    for (int n = 1; n < 6; n++) {
+        errorCodes result = findPrimes(n, &primesArray);
+        assert(result == OK);
+        assert(primesArray != NULL);
+        
+        // Проверяем, что все числа простые
+        for (int i = 0; i < n; i++) {
+            assert(isPrime(primesArray[i]));
+        }
+        
+        free(primesArray);
+    }
+    
+    printf("testFindPrimesEdgeCases: PASSED\n\n");
+}
+
+static void testFindPrimesMemoryManagement() {
+    printf("Running testFindPrimesMemoryManagement...\n");
+    
+    int* primesArray;
+    
+    // Многократный вызов для проверки утечек памяти
+    for (int i = 0; i < 10; i++) {
+        errorCodes result = findPrimes(10, &primesArray);
+        assert(result == OK);
+        assert(primesArray != NULL);
+        free(primesArray); // Важно освобождать память
+    }
+    
+    printf("testFindPrimesMemoryManagement: PASSED\n\n");
+}
+
+static void testFindPrimesConsistency() {
+    printf("Running testFindPrimesConsistency...\n");
+    
+    int* primesArray1;
+    int* primesArray2;
+    
+    errorCodes result1 = findPrimes(50, &primesArray1);
+    errorCodes result2 = findPrimes(50, &primesArray2);
+    
+    assert(result1 == OK);
+    assert(result2 == OK);
+    assert(primesArray1 != NULL);
+    assert(primesArray2 != NULL);
+    
+    for (int i = 0; i < 50; i++) {
+        assert(primesArray1[i] == primesArray2[i]);
+    }
+    
+    free(primesArray1);
+    free(primesArray2);
+    
+    printf("testFindPrimesConsistency: PASSED\n\n");
+}
+
+static void testFindPrimesSpecificValues() {
+    printf("Running testFindPrimesSpecificValues...\n");
+    
+    int* primesArray;
+    
+    // Тестируем конкретные известные значения
+    struct TestCase {
+        int n;
+        int expectedPrime;
+    } testCases[] = {
+        {1, 2},
+        {2, 3},
+        {3, 5},
+        {4, 7},
+        {5, 11},
+        {10, 29},
+        {20, 71},
+        {50, 229},
+        {100, 541},
+        {500, 3571}
+    };
+    
+    size_t testCasesCount = sizeof(testCases) / sizeof(testCases[0]);
+    for (size_t i = 0; i < testCasesCount; i++) {
+        errorCodes result = findPrimes(testCases[i].n, &primesArray);
+        assert(result == OK);
+        assert(primesArray != NULL);
+        assert(primesArray[testCases[i].n - 1] == testCases[i].expectedPrime);
+        free(primesArray);
+    }
+    
+    printf("testFindPrimesSpecificValues: PASSED\n\n");
+}
+
+static void testFindPrimesArraySize() {
+    printf("Running testFindPrimesArraySize...\n");
+    
+    int* primesArray;
+    
+    // Тест: проверяем, что массив содержит ровно n элементов
+    int n = 25;
+    errorCodes result = findPrimes(n, &primesArray);
+    assert(result == OK);
+    assert(primesArray != NULL);
+    
+    // Проверяем, что можем безопасно обращаться к элементам 0..n-1
+    for (int i = 0; i < n; i++) {
+        assert(primesArray[i] > 0);
+        assert(isPrime(primesArray[i]));
+    }
+    
+    free(primesArray);
+    
+    printf("testFindPrimesArraySize: PASSED\n\n");
 }
 
 int main() {
-    // Проверяем что программа скомпилирована
-    if (access("./prime_program", F_OK) == -1) {
-        printf("Error: prime_program not found. Please compile the program first.\n");
-        return 1;
-    }
+    printf("Starting internal tests for prime numbers library...\n\n");
     
-    test_all();
+    testFindPrimesBasic();
+    testFindPrimesBoundary();
+    testFindPrimesErrorCases();
+    testFindPrimesLargeValues();
+    testFindPrimesEdgeCases();
+    testFindPrimesMemoryManagement();
+    testFindPrimesConsistency();
+    testFindPrimesSpecificValues();
+    testFindPrimesArraySize();
+    
+    printf("========================================\n");
+    printf("ALL TESTS PASSED SUCCESSFULLY!\n");
+    printf("========================================\n");
+    
     return 0;
 }

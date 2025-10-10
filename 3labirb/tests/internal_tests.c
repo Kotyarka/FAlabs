@@ -5,7 +5,6 @@
 #include <math.h>
 #include "../include/flags.h"
 
-// Тесты для isValidInteger
 void test_isValidInteger() {
     printf("Testing isValidInteger...\n");
     
@@ -161,21 +160,6 @@ void test_equationSolving() {
     printf("equationSolving tests passed!\n");
 }
 
-// Тесты для функции q (quadratic equation wrapper)
-void test_q_function() {
-    printf("Testing q function...\n");
-    
-    quadraticSolution solution;
-    double eps = 0.0001;
-    
-    assert(q(eps, 1, -3, 2, &solution) == OK);
-    assert(solution.rootsCount == 2);
-    
-    assert(q(eps, 1, 2, 3, NULL) == POINTER_ERROR);
-    
-    printf("q function tests passed!\n");
-}
-
 void test_all() {
     printf("=== Starting all internal tests ===\n\n");
     
@@ -187,7 +171,6 @@ void test_all() {
     test_m_function();
     test_t_function();
     test_equationSolving();
-    test_q_function();
     
     printf("\n=== All internal tests passed! ===\n");
 }

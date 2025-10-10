@@ -35,10 +35,8 @@ int main() {
         }
     }
 
-    int primesCount;
     int* primesArray;
-
-    errorCodes result = findPrimes(maxNumber, &primesArray, &primesCount);
+    errorCodes result = findPrimes(maxNumber, &primesArray);
 
     if (result != OK) {
         free(inputMas);
@@ -67,6 +65,14 @@ int main() {
             free(primesArray);
             return INDEX_ERROR;
         }
+        
+        if (index > maxNumber) {
+            printf("Requested prime index %d exceeds maximum generated index %d", index, maxNumber);
+            free(inputMas);
+            free(primesArray);
+            return INDEX_ERROR;
+        }
+        
         printf("%d. The %d prime number is: %d\n", i + 1, index, primesArray[index - 1]);
     }
     

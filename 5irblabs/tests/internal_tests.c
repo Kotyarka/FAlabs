@@ -5,7 +5,6 @@
 #include <ctype.h>
 #include "../include/flags.h"
 
-// Вспомогательные функции для тестирования
 void create_test_file(const char* filename, const char* content) {
     FILE* file = fopen(filename, "w");
     if (file) {

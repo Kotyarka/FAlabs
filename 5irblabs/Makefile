@@ -1,6 +1,6 @@
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -g -I./include
+CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -I./include
 LDFLAGS = -fsanitize=address
 
 # Имена исполняемых файлов

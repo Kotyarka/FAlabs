@@ -10,13 +10,14 @@ int main(int argc, char* argv[]) {
     }
     
     FILE* input = fopen(argv[1], "r");
-    FILE* output = fopen(argv[2], "w");
+
     
     if (!input) {
         printf("Cannot open input file");
         return FILE_ERROR;
     }
     
+    FILE* output = fopen(argv[2], "w");
     if (!output) {
         printf("Cannot open output file");
         fclose(input);

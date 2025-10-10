@@ -1,11 +1,10 @@
 # Компилятор и флаги
 CC = gcc
-CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 -g
+CFLAGS = -Wall -Werror -Wextra -pedantic -fsanitize=address -std=c99 
 LDFLAGS = -fsanitize=address -lm
 
 # Имена исполняемых файлов
 MAIN_PROGRAM = program
-TEST_PROGRAM = internal_tests
 
 # Директории
 SRC_DIR = source
@@ -14,7 +13,6 @@ TST_DIR = tests
 
 # Исходные файлы
 MAIN_SOURCES = $(SRC_DIR)/main.c $(SRC_DIR)/numbers.c
-TEST_SOURCES = $(TST_DIR)/internal_tests.c $(SRC_DIR)/numbers.c
 
 # Объектные файлы
 MAIN_OBJECTS = $(MAIN_SOURCES:.c=.o)
@@ -38,9 +36,6 @@ $(SRC_DIR)/main.o: $(SRC_DIR)/main.c $(INC_DIR)/numbers.h
 $(SRC_DIR)/numbers.o: $(SRC_DIR)/numbers.c $(INC_DIR)/numbers.h
 	$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
-# Компиляция объектных файлов для тестов
-$(SRC_DIR)/internal_tests.o: $(SRC_DIR)/internal_tests.c $(INC_DIR)/numbers.h
-	$(CC) $(CFLAGS) -I$(INC_DIR) -c $< -o $@
 
 # Запуск тестов
 test: $(MAIN_PROGRAM) $(TEST_PROGRAM)

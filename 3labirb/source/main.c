@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 int main(int argc, char* argv[]) {
     if (argc < 2) {
         printf("Wrong value of arguments\n");
@@ -18,7 +19,7 @@ int main(int argc, char* argv[]) {
     }
     
     char flagChar = flag[1];
-    errorCodes resultCode;
+    errorCodes resultCode = OK;
     
     switch (flagChar) {
         case 'q': {
@@ -50,45 +51,7 @@ int main(int argc, char* argv[]) {
             double b = atof(argv[4]);
             double c = atof(argv[5]);
             
-            double coefficients[3] = {a, b, c};
-            int permutationCount = 0;
-            
-            printf("All permutations and their solutions:\n");
-            
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    for (int k = 0; k < 3; k++) {
-                        if (i != j && i != k && j != k) {
-                            permutationCount++;
-                            quadraticSolution solution;
-                            
-                            resultCode = equationSolving(eps, coefficients[i], coefficients[j], coefficients[k], &solution);
-                            
-                            if (resultCode == OK) {
-                                printf("Coefficients: a=%.2f, b=%.2f, c=%.2f -> ", 
-                                       coefficients[i], coefficients[j], coefficients[k]);
-                                
-                                switch (solution.rootsCount) {
-                                    case -1:
-                                        printf("not a quadratic equation\n");
-                                        break;
-                                    case 0:
-                                        printf("no real roots\n");
-                                        break;
-                                    case 1:
-                                        printf("one root: %.6f\n", solution.r1);
-                                        break;
-                                    case 2:
-                                        printf("two roots: %.6f, %.6f\n", solution.r1, solution.r2);
-                                        break;
-                                }
-                            } else {
-                                printf("Error solving equation for permutation %d\n", permutationCount);
-                            }
-                        }
-                    }
-                }
-            }
+            resultCode = solveAllPermutations(eps, a, b, c);
             break;
         }
         case 'm': {
@@ -99,7 +62,7 @@ int main(int argc, char* argv[]) {
             errorCodes num1Validation = isValidInteger(argv[2]);
             errorCodes num2Validation = isValidInteger(argv[3]);
             if (num1Validation != OK || num2Validation != OK) {
-                printf("Error: numbers must be valid integers\n");
+                printf("Numbers must be valid integers\n");
                 return BAD_INPUT;
             }
             
@@ -108,7 +71,7 @@ int main(int argc, char* argv[]) {
             errorCodes convertResult2 = convertStrToNum(argv[3], &num2);
             
             if (convertResult1 != OK || convertResult2 != OK) {
-                printf("Error occurred: invalid number format\n");
+                printf("Invalid number format\n");
                 return BAD_INPUT;
             }
             
@@ -132,12 +95,12 @@ int main(int argc, char* argv[]) {
             
             errorCodes epsValidation = isValidDouble(argv[2]);
             if (epsValidation != OK) {
-                printf("Error: epsilon must be a valid number\n");
+                printf("Epsilon must be a valid number\n");
                 return BAD_INPUT;
             }
             double eps = atof(argv[2]);
             if (eps <= 0) {
-                printf("Error: epsilon must be positive\n");
+                printf("Epsilon must be positive\n");
                 return BAD_INPUT;
             }
             

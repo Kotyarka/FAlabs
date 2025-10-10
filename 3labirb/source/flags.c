@@ -1,5 +1,6 @@
 #include "../include/flags.h"
 
+
 errorCodes isValidInteger(const char* str) {
     if (str == NULL) {
         return POINTER_ERROR;
@@ -80,6 +81,51 @@ errorCodes isValidDouble(const char* str) {
     
     return has_digit ? OK : BAD_INPUT;
 }
+errorCodes solveAllPermutations(double eps, double a, double b, double c) {
+    double coefficients[3] = {a, b, c};
+    int permutationCount = 0;
+    
+    printf("All permutations and their solutions:\n");
+    
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            for (int k = 0; k < 3; k++) {
+                if (i != j && i != k && j != k) {
+                    permutationCount++;
+                    quadraticSolution solution;
+                    errorCodes resultCode;
+                    
+                    resultCode = equationSolving(eps, coefficients[i], coefficients[j], coefficients[k], &solution);
+                    
+                    if (resultCode == OK) {
+                        printf("Coefficients: a=%.2f, b=%.2f, c=%.2f -> ", 
+                               coefficients[i], coefficients[j], coefficients[k]);
+                        
+                        switch (solution.rootsCount) {
+                            case -1:
+                                printf("not a quadratic equation\n");
+                                break;
+                            case 0:
+                                printf("no real roots\n");
+                                break;
+                            case 1:
+                                printf("one root: %.6f\n", solution.r1);
+                                break;
+                            case 2:
+                                printf("two roots: %.6f, %.6f\n", solution.r1, solution.r2);
+                                break;
+                        }
+                    } else {
+                        printf("Error solving equation for permutation %d\n", permutationCount);
+                        return resultCode;
+                    }
+                }
+            }
+        }
+    }
+    
+    return OK;
+}
 
 errorCodes canFormTriangle(float a, float b, float c) {
     if ((a + b > c) && (a + c > b) && (b + c > a)) {
@@ -128,14 +174,6 @@ errorCodes isFlagValid(const char* flag) {
         default:
             return BAD_INPUT;
     }
-}
-
-errorCodes q(double eps, double a, double b, double c, quadraticSolution* answer) {
-    if (answer == NULL) {
-        return POINTER_ERROR;
-    }
-    
-    return equationSolving(eps, a, b, c, answer);
 }
 
 errorCodes equationSolving(double eps, double a, double b, double c, quadraticSolution* answer) {

@@ -31,5 +31,6 @@ errorCodes equationSolving(double eps, double a, double b, double c, quadraticSo
 errorCodes q(double eps, double a, double b, double c, quadraticSolution* answer);
 errorCodes m(int a, int b, int* isMultiple);
 errorCodes t(double eps, float a, float b, float c, int* isTriangle);
+errorCodes solveAllPermutations(double eps, double a, double b, double c);
 
 #endif

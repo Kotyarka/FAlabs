@@ -173,15 +173,16 @@ errorCodes findMinBase(char* numberStr, int* minBase) {
 
     if (result == OK) {
         return OK;
-    } else {
-        for (int base = *minBase + 1; base <= 36; base++) {
-            result = numChecker(numberStr, &base, &isMinus);
-            if (result == OK) {
-                *minBase = base;
-                return OK;
-            }
+    }
+    
+    for (int base = *minBase + 1; base <= 36; base++) {
+        result = numChecker(numberStr, &base, &isMinus);
+        if (result == OK) {
+            *minBase = base;
+            return OK;
         }
     }
+    
 
     return INVALID_NUMBER;
 }

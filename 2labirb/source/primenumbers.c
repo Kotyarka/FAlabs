@@ -4,9 +4,8 @@
 #include <stdbool.h>
 #include "../include/primenumbers.h"
 
-errorCodes findPrimes(int n, int** primesArray, int* primesCount) {
+errorCodes findPrimes(int n, int** primesArray) {
     if (n <= 0) {
-        *primesCount = 0;
         *primesArray = NULL;
         return OK;
     }
@@ -33,7 +32,6 @@ errorCodes findPrimes(int n, int** primesArray, int* primesCount) {
     sieve[0] = false;
     sieve[1] = false;
 
-
     int sqrtUpper = (int)sqrt(upperBound);
     for (int i = 2; i <= sqrtUpper; i++) {
         if (sieve[i]) {
@@ -43,14 +41,14 @@ errorCodes findPrimes(int n, int** primesArray, int* primesCount) {
         }
     }
 
-    *primesCount = 0;
+    int primesCount = 0;
     for (int i = 2; i <= upperBound; i++) {
         if (sieve[i]) {
-            (*primesCount)++;
+            primesCount++;
         }
     }
 
-    if (*primesCount < n) {
+    if (primesCount < n) {
         free(sieve);
         return OVERFLOW_ERROR;
     }

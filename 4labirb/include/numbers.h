@@ -1,11 +1,5 @@
-#ifndef NUMBERS_H
-#define NUMBERS_H
-
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 
 typedef enum {
     OK = 0,
@@ -17,33 +11,27 @@ typedef enum {
     NOT_A_DOUBLE_ERROR = 6,
     NOT_AN_INTEGER_ERROR = 7,
     TOO_SMALL_EPSILON_ERROR = 8,
+    CALCULATION_ERROR = 9
 } errorCodes;
 
-typedef double (*function)(double);
+errorCodes eRow(double eps, double* result);
+errorCodes eLimit(double eps, double* result);
+errorCodes eEquation(double eps, double* result);
 
-errorCodes transferToDouble(const char* str, double* num);
-errorCodes isDoubleOverflow(double toCheck);
-double calculateHarmonicNumber(double number);
-int isPrime(int n);
+errorCodes lnLimit(double eps, double* result);
+errorCodes lnRow(double eps, double* result);
+errorCodes lnEquation(double eps, double* result);
 
-errorCodes calculateELimit(double eps, double* result);
-errorCodes calculatePiLimit(double eps, double* result);
-errorCodes calculateLnLimit(double eps, double* result);
-errorCodes calculateSqrt2Limit(double eps, double* result);
-errorCodes calculateGammaLimit(double eps, double* result);
+errorCodes sqrtEquation(double eps, double* result);
+errorCodes sqrtRow(double eps, double* result);
+errorCodes sqrtLimit(double eps, double* result);
 
-errorCodes calculateERow(double eps, double* result);
-errorCodes calculatePiRow(double eps, double* result);
-errorCodes calculateLnRow(double eps, double* result);
-errorCodes calculateSqrt2Row(double eps, double* result);
-errorCodes calculateGammaRow(double eps, double* result);
+errorCodes piLimit(double eps, double* result);
+errorCodes piEquation(double eps, double* result);
+errorCodes piRow(double eps, double* result);
 
-errorCodes calculateEEquation(double eps, double* result);
-errorCodes calculatePiEquation(double eps, double* result);
-errorCodes calculateLnEquation(double eps, double* result);
-errorCodes calculateSqrt2Equation(double eps, double* result);
-errorCodes calculateGammaEquation(double eps, double* result);
-
-void getResults(double eps, double results[15]);
+errorCodes gammaLimit(double eps, double* result);
+errorCodes gammaRow(double eps, double* result);
+errorCodes gammaEquation(double eps, double* result);
 
 #endif

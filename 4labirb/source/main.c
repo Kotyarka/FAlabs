@@ -1,58 +1,82 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "../include/numbers.h"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     if (argc != 2) {
-        printf("Wrong value of arguments. Expected: ./program epsilon\n");
-        return WRONG_ARGUMENTS;
-    }
-    
-    double eps;
-    errorCodes validationResult = transferToDouble(argv[1], &eps);
-
-    if (validationResult != OK) {
-        printf("Error occurred: %d\n", validationResult);
-        return validationResult;
-    }
-
-    if (eps <= 0) {
-        printf("Error: epsilon must be positive\n");
+        printf("Wrong number of arguments! type only epsilon");
         return BAD_INPUT;
     }
 
-    double results[15];
-    getResults(eps, results);
+    char *typedEpsilon;
+    double eps = strtod(argv[1], &typedEpsilon);
+    if (*typedEpsilon != '\0' || eps <= 0) {
+        printf("Type correct epsilon!");
+        return BAD_INPUT;
+    }
 
-    char* constants[5] = {"e", "pi", "ln2", "sqrt2", "gamma"};
-    
-    printf("Calculation using limits\n");
-    for (int i = 0; i < 5; ++i) {
-        if (isnan(results[i])) {
-            printf("%s Impossible to calculate with a specific epsilon\n", constants[i % 5]);
-            continue;
-        } 
-        printf("%s = %lf\n", constants[i % 5], results[i]);
-    }
-    printf("\n");
+    double result;
+    errorCodes errorCode;
 
-    printf("Calculation using rows\n");
-    for (int i = 5; i < 10; ++i) {
-        if (isnan(results[i])) {
-            printf("%s Impossible to calculate with a specific epsilon\n", constants[i % 5]);
-            continue;
-        } 
-        printf("%s = %lf\n", constants[i % 5], results[i]);
-    }
-    printf("\n");
-    
-    printf("Calculation using equations\n");
-    for (int i = 10; i < 15; ++i) {
-        if (isnan(results[i])) {
-            printf("%s Impossible to calculate with a specific epsilon\n", constants[i % 5]);
-            continue;
-        } 
-        printf("%s = %lf\n", constants[i % 5], results[i]);
-    }
-    printf("\n");
-    
-    return OK;
+    errorCode = eRow(eps, &result);
+    if (errorCode == OK) printf("e by row  %.15f\n", result);
+    else printf("e by row  ERROR: %d\n", errorCode);
+
+    errorCode = eLimit(eps, &result);
+    if (errorCode == OK) printf("e by limit %.15f\n", result);
+    else printf("e by limit ERROR: %d\n", errorCode);
+
+    errorCode = eEquation(eps, &result);
+    if (errorCode == OK) printf("e by equation %.15f\n", result);
+    else printf("e by equation ERROR: %d\n", errorCode);
+
+    errorCode = lnLimit(eps, &result);
+    if (errorCode == OK) printf("ln2 by limit %.15f\n", result);
+    else printf("ln2 by limit ERROR: %d\n", errorCode);
+
+    errorCode = lnRow(eps, &result);
+    if (errorCode == OK) printf("ln2 by row %.15f\n", result);
+    else printf("ln2 by row ERROR: %d\n", errorCode);
+
+    errorCode = lnEquation(eps, &result);
+    if (errorCode == OK) printf("ln2 by equation %.15f\n", result);
+    else printf("ln2 by equation ERROR: %d\n", errorCode);
+
+    errorCode = sqrtRow(eps, &result);
+    if (errorCode == OK) printf("sqrt(2) by row %.15f\n", result);
+    else printf("sqrt(2) by row ERROR: %d\n", errorCode);
+
+    errorCode = sqrtEquation(eps, &result);
+    if (errorCode == OK) printf("sqrt(2) by equation %.15f\n", result);
+    else printf("sqrt(2) by equation ERROR: %d\n", errorCode);
+
+    errorCode = sqrtLimit(eps, &result);
+    if (errorCode == OK) printf("sqrt(2) by limit %.15f\n", result);
+    else printf("sqrt(2) by limitERROR: %d\n", errorCode);
+
+    errorCode = piRow(eps, &result);
+    if (errorCode == OK) printf("Pi by row %.15f\n", result);
+    else printf("Pi by row ERROR: %d\n", errorCode);
+
+    errorCode = piLimit(eps, &result);
+    if (errorCode == OK) printf("Pi by limit %.15f\n", result);
+    else printf("Pi by limitERROR: %d\n", errorCode);
+
+    errorCode = piEquation(eps, &result);
+    if (errorCode == OK) printf("Pi by equation%.15f\n", result);
+    else printf("Pi by equation ERROR: %d\n", errorCode);
+
+    errorCode = gammaLimit(eps, &result);
+    if (errorCode == OK) printf("y by limit %.15f\n", result);
+    else printf("y by limit ERROR: %d\n", errorCode);
+
+    errorCode = gammaRow(eps, &result);
+    if (errorCode == OK) printf("y by row %.15f\n", result);
+    else printf("y by row ERROR: %d\n", errorCode);
+
+    errorCode = gammaEquation(eps, &result);
+    if (errorCode == OK) printf("y by equation %.15f\n", result);
+    else printf("y by equation ERROR: %d\n", errorCode);
+
+    return 0;
 }

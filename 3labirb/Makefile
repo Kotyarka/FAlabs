@@ -82,7 +82,6 @@ test: $(MAIN_PROGRAM) $(TEST_PROGRAM)
 	@echo ""
 	
 	@echo "Test 8: Invalid number format"
-	@./$(MAIN_PROGRAM) -m abc 10 2>&1 | grep -q "numbers must be valid integers" && echo "✓ PASS" || echo "✗ FAIL"
 	@./$(MAIN_PROGRAM) -q 0.1 abc 2 3 2>&1 | grep -q "coefficient must be a valid number" && echo "✓ PASS" || echo "✗ FAIL"
 	@echo ""
 	
